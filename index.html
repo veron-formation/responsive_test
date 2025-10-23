@@ -178,7 +178,6 @@
     </div>
     
     <div class="reviews-carousel">
-    </div>
 </div>
 </div>
 
@@ -190,7 +189,9 @@
 // N'oubliez pas de remplacer ces 3 valeurs par vos informations réelles
 // ====================================================================
 const API_KEY = 'AIzaSyA5ltEx_jUIlgC-IrGsubOfKQIHFyg4u78';
+// REMARQUE : Remplacez la valeur ci-dessous par l'identifiant réel de votre Google Spreadsheet.
 const SPREADSHEET_ID = '14HcunSAnIfklpemWokAvHl7H_o1yipDbWsQ2k5TE_KY';
+// TODO: Replace 'Réponses au formulaire 1' with your actual sheet name.
 const SHEET_NAME = 'Réponses au formulaire 1';
 // ====================================================================
 
@@ -237,7 +238,7 @@ function updateCounter() {
         // Le compteur affiche uniquement le nombre d'avis
         counterElement.textContent = `${currentReviewIndex + 1} / ${totalReviews} avis`;
     } else if (counterElement) {
-         counterElement.textContent = `0 avis`;
+        counterElement.textContent = `0 avis`;
     }
 }
 
@@ -262,7 +263,7 @@ function scrollCarousel(direction) {
     updateCounter(); 
 
     // Calcul et exécution du défilement
-    const cardElement = REVIEWS_CONTAINER.querySelector('.review-card');
+    const cardElement = REVIEWS_CONTAINER.children[currentReviewIndex];
     if (!cardElement) return;
 
     // 20 est l'espacement (gap) entre les cartes
@@ -296,7 +297,7 @@ async function fetchReviews() {
             
             // FILTRE : Seuls les avis où 'isVerified' est exactement '1' sont conservés.
             if (isVerified !== '1') {
-                 return; 
+                return; 
             }
             
             // Enregistre la note si elle est valide
@@ -367,8 +368,3 @@ async function fetchReviews() {
 fetchReviews();
 </script>
 </html>
-
-
-
-
-
