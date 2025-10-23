@@ -134,29 +134,29 @@
     }
     }
 
-/* Styles des éléments de la carte (non modifiés) */
-.reviewer-info { display: flex; align-items: center; justify-content: flex-start; margin-bottom: 10px; }
-.reviewer-details { text-align: left; }
-.reviewer-details .name { font-weight: bold; color: #333; }
-.reviewer-details .job { color: #666; font-style: italic; }
-.stars { color: #DDAC17; font-size: 1.5em; margin: 10px 0; }
-.comment { font-style: italic; color: #333; line-height: 1.6; }
+    /* Styles des éléments de la carte (non modifiés) */
+    .reviewer-info { display: flex; align-items: center; justify-content: flex-start; margin-bottom: 10px; }
+    .reviewer-details { text-align: left; }
+    .reviewer-details .name { font-weight: bold; color: #333; }
+    .reviewer-details .job { color: #666; font-style: italic; }
+    .stars { color: #DDAC17; font-size: 1.5em; margin: 10px 0; }
+    .comment { font-style: italic; color: #333; line-height: 1.6; }
 
-/* Logos et badges (non modifiés) */
-.linkedin-link {
+    /* Logos et badges (non modifiés) */
+    .linkedin-link {
     display: inline-block; position: absolute; top: 10px; right: 38px; width: 24px; height: 24px;
     background-image: url('https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png');
     background-size: contain; background-repeat: no-repeat; text-indent: -9999px; overflow: hidden;
-}
-.certified-badge {
+    }
+    .certified-badge {
     position: absolute; top: 10px; right: 10px; width: 24px; height: 24px;
     background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Check_icon.png/640px-Check_icon.png');
     background-size: contain; background-repeat: no-repeat; z-index: 10;
-}
-@media (max-width: 600px) {
+    }
+    @media (max-width: 600px) {
     .review-widget-container { padding: 10px !important; }
     .review-card { padding: 15px; }
-}
+    }
 
     
     h1 { margin: 0 0 8px 0; font-size: clamp(18px, 3.5vw, 32px); line-height:1.05; }
@@ -184,7 +184,190 @@
 
   
 </body>
+
+<script>
+// ====================================================================
+// N'oubliez pas de remplacer ces 3 valeurs par vos informations réelles
+// ====================================================================
+const API_KEY = 'AIzaSyA5ltEx_jUIlgC-IrGsubOfKQIHFyg4u78';
+const SPREADSHEET_ID = '14HcunSAnIfklpemWokAvHl7H_o1yipDbWsQ2k5TE_KY';
+const SHEET_NAME = 'Réponses au formulaire 1';
+// ====================================================================
+
+const RANGE = 'A2:G'; 
+const REVIEWS_CONTAINER = document.querySelector('.reviews-carousel');
+
+// VARIABLES DE COMPTEUR
+let currentReviewIndex = 0; 
+let totalReviews = 0;
+
+// FONCTION POUR METTRE À JOUR LA NOTE MOYENNE
+function displayAverageRating(ratings) {
+    const avgElement = document.getElementById('average-rating');
+    if (!avgElement) return;
+
+    if (ratings.length === 0) {
+        avgElement.innerHTML = `
+            <div class="rating-value">
+                <span class="star-icon">★</span> 0.0
+            </div>
+            <span class="average-text">Note moyenne</span>
+        `;
+        return;
+    }
+
+    // Calcule la somme des notes
+    const sum = ratings.reduce((acc, rating) => acc + rating, 0);
+    // Calcule la moyenne et la formatte à une décimale
+    const average = (sum / ratings.length).toFixed(1);
+    
+    // Ajout du texte descriptif
+    avgElement.innerHTML = `
+        <div class="rating-value">
+            <span class="star-icon">★</span> ${average}
+        </div>
+        <span class="average-text">Note moyenne</span>
+    `;
+}
+
+// FONCTION POUR METTRE À JOUR LE COMPTEUR D'AFFICHAGE
+function updateCounter() {
+    const counterElement = document.getElementById('review-counter');
+    if (counterElement && totalReviews > 0) {
+        // Le compteur affiche uniquement le nombre d'avis
+        counterElement.textContent = `${currentReviewIndex + 1} / ${totalReviews} avis`;
+    } else if (counterElement) {
+         counterElement.textContent = `0 avis`;
+    }
+}
+
+
+// Fonction pour faire défiler le carrousel
+function scrollCarousel(direction) {
+    // Calcul du nouvel index
+    let newIndex = currentReviewIndex + direction;
+
+    // Logique d'arrêt aux extrémités
+    if (newIndex < 0) {
+        newIndex = 0;
+        return; 
+    }
+    if (newIndex >= totalReviews) {
+        newIndex = totalReviews - 1;
+        return; 
+    }
+    
+    // Mise à jour de l'index
+    currentReviewIndex = newIndex;
+    updateCounter(); 
+
+    // Calcul et exécution du défilement
+    const cardElement = REVIEWS_CONTAINER.querySelector('.review-card');
+    if (!cardElement) return;
+
+    // 20 est l'espacement (gap) entre les cartes
+    const scrollDistance = cardElement.offsetWidth + 20; 
+    
+    REVIEWS_CONTAINER.scrollTo({ 
+        left: currentReviewIndex * scrollDistance, 
+        behavior: 'smooth'
+    });
+};
+
+
+async function fetchReviews() {
+    try {
+        const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_NAME}!${RANGE}?key=${API_KEY}`);
+        const data = await response.json();
+        const reviews = data.values;
+        
+        if (!reviews || reviews.length === 0) {
+            console.error('Aucune donnée trouvée dans la feuille de calcul.');
+            totalReviews = 0;
+            updateCounter();
+            displayAverageRating([]); 
+            return;
+        }
+
+        const validRatings = []; 
+
+        reviews.forEach(row => {
+            const [timestamp, prenom, job, rating, comment, linkedinUrl, isVerified] = row;
+            
+            // FILTRE : Seuls les avis où 'isVerified' est exactement '1' sont conservés.
+            if (isVerified !== '1') {
+                 return; 
+            }
+            
+            // Enregistre la note si elle est valide
+            const numericRating = parseFloat(rating) || 0;
+            if (numericRating > 0) {
+                validRatings.push(numericRating);
+            }
+            
+            if (!prenom && !comment) { return; }
+
+            const reviewCard = document.createElement('div');
+            reviewCard.className = 'review-card';
+
+            const filledStars = '★'.repeat(Math.round(numericRating));
+            const emptyStars = '☆'.repeat(5 - Math.round(numericRating));
+            const starHtml = filledStars + emptyStars;
+            
+            const certifiedBadge = `<div class="certified-badge"></div>`; 
+            const linkedinSection = linkedinUrl ? `<a href="${linkedinUrl}" class="linkedin-link" target="_blank"></a>` : '';
+
+            const reviewerInfo = `
+                <div class="reviewer-info">
+                    <div class="reviewer-details">
+                        <span class="name">${prenom}</span><br>
+                        <span class="job">${job}</span>
+                    </div>
+                </div>
+            `;
+            const ratingSection = rating ? `<div class="stars">${starHtml}</div>` : '';
+            const commentSection = comment ? `<div class="comment">${comment}</div>` : '';
+
+            reviewCard.innerHTML = `
+                ${certifiedBadge}
+                ${linkedinSection}
+                ${reviewerInfo}
+                ${ratingSection}
+                ${commentSection}
+            `;
+
+            REVIEWS_CONTAINER.appendChild(reviewCard);
+        });
+        
+        // Initialisation du compteur et de la note moyenne
+        totalReviews = REVIEWS_CONTAINER.children.length;
+        currentReviewIndex = 0;
+        updateCounter();
+        displayAverageRating(validRatings); 
+
+        // Attachement des événements de clic
+        const prevButton = document.getElementById('carousel-prev');
+        const nextButton = document.getElementById('carousel-next');
+
+        if (prevButton && nextButton) {
+            prevButton.addEventListener('click', () => {
+                scrollCarousel(-1);
+            });
+
+            nextButton.addEventListener('click', () => {
+                scrollCarousel(1);
+            });
+        }
+
+    } catch (error) {
+        console.error('Erreur lors de la récupération des avis via l\'API :', error);
+    }
+}
+
+fetchReviews();
+</script>
 </html>
+
 
 
 
