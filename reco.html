@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Test responsive iframe</title>
+  <style>
+    html, body { height: 100%; margin: 0; padding: 0; box-sizing: border-box; }
+    *, *::before, *::after { box-sizing: inherit; }
+
+    .page {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: clamp(12px, 3vw, 32px);
+      background: linear-gradient(180deg, #eaf4ff 0%, #ffffff 100%);
+      font-family: Inter, Arial, Helvetica, sans-serif;
+    }
+
+    .card {
+      width: 100%;
+      max-width: 960px;
+      background: #2d89ef;
+      color: #fff;
+      border-radius: 12px;
+      padding: clamp(16px, 4vw, 40px);
+      text-align: center;
+      box-shadow: 0 8px 24px rgba(13, 30, 60, 0.12);
+    }
+
+    h1 { margin: 0 0 8px 0; font-size: clamp(18px, 3.5vw, 32px); line-height:1.05; }
+    p  { margin: 0; font-size: clamp(14px, 2.2vw, 18px); opacity: 0.95; }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="card">
+      <h1>Hello depuis GitHub Pages 👋</h1>
+      <p>Si ceci s’affiche correctement, ton site est prêt à être intégré dans Google Sites.</p>
+    </div>
+  </div>
+</body>
+</html>
