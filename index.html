@@ -58,7 +58,7 @@
             padding-top: 0px;
             border-top: none;	
             font-style: normal;
-            font-size: 1em;
+            font-size: 1em; 
             line-height: 1.5; 
             
             margin-bottom: 0;
@@ -71,7 +71,7 @@
         
         /* Organisation de l'en-tête (Nom/Fonction vs Icônes) */
         .avis-header {
-            display: block; /* Important pour que le Nom/Fonction coule sous les éléments flottants */
+            display: block;
             margin-bottom: 5px; 
         }
         
@@ -81,7 +81,7 @@
             gap: 8px; 
             align-items: center; 
             
-            float: right; /* Pousse les icônes à l'extrême droite */
+            float: right;
             margin-bottom: 5px; 
         }
         
@@ -97,7 +97,7 @@
         /* Conteneur des informations du client (Nom/Fonction) */
         .client-info-bloc {
             margin-bottom: 0px;	
-            overflow: hidden; /* Déclenche un nouveau contexte de formatage pour respecter le float: right des icônes */
+            overflow: hidden; 
         }
 
         .client-nom {
@@ -326,7 +326,8 @@
             const noteNumerique = parseInt(note);
             let etoilesHTML = '';
             const etoilePleine = '<span class="etoile pleine">&#9733;</span>';
-            const etoileVide = '<span class="etoile vide">&#9734;s</span>';
+            // CORRECTION CLÉ DU BUG ÉTOILES
+            const etoileVide = '<span class="etoile vide">&#9734;</span>'; 
 
             for (let i = 0; i < 5; i++) {
                 etoilesHTML += (i < noteNumerique) ? etoilePleine : etoileVide;
@@ -408,6 +409,7 @@
             const conteneurTotal = document.getElementById('total-avis-valeur');
             
             if (conteneurStats) {
+                // Ajout de l'étoile
                 conteneurStats.innerHTML = `${moyenne} <span class="etoile-stats">&#9733;</span>`; 
             }
             if (conteneurTotal) {
