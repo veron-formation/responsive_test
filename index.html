@@ -1,370 +1,499 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="fr">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Test responsive iframe</title>
-  <style>
-    html, body { height: 100%; margin: 0; padding: 0; box-sizing: border-box; }
-    *, *::before, *::after { box-sizing: inherit; }
-
-    .page {
-      min-height: 100vh;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: clamp(12px, 3vw, 32px);
-      background: linear-gradient(180deg, #eaf4ff 0%, #ffffff 100%);
-      font-family: Inter, Arial, Helvetica, sans-serif;
-    }
-
-    .card {
-      width: 100%;
-      max-width: 960px;
-      background: #2d89ef;
-      color: #fff;
-      border-radius: 12px;
-      padding: clamp(16px, 4vw, 40px);
-      text-align: center;
-      box-shadow: 0 8px 24px rgba(13, 30, 60, 0.12);
-    }
-
-    /* Conteneur pour les flèches et les compteurs (au-dessus du carrousel) */
-    .carousel-header {
-    display: flex;
-    justify-content: center; /* Alignement au centre */
-    align-items: center;
-    gap: 15px; /* Augmenté pour mieux séparer les éléments */
-    margin-bottom: 10px;
-    padding: 0 10px;
-    font-size: 1.1em;
-    }
-
-    /* 🆕 Style pour la note moyenne */
-    #average-rating {
-    font-weight: bold;
-    color: #333;
-    white-space: nowrap;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    order: -1; /* Place la note moyenne à gauche (avant les flèches) */
-    flex-direction: column; /* Organise l'étoile/note et le texte en colonne */
-    text-align: center;
-    line-height: 1.2;
-    }
-
-    /* 🆕 Conteneur pour l'étoile et la note */
-    #average-rating .rating-value {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 1.2em;
-    }
-
-    /* 🆕 Style pour l'étoile de la moyenne */
-    #average-rating .star-icon {
-    color: #DDAC17;
-    }
-
-    /* 🆕 Texte descriptif de la moyenne */
-    #average-rating .average-text {
-    font-size: 0.7em; /* Rendu plus petit et discret */
-    font-weight: normal;
-    color: #666;
-    margin-top: 2px;
-    }
-
-    /* Style pour le compteur de commentaires */
-    #review-counter {
-    font-weight: bold;
-    color: #333;
-    white-space: nowrap; 
-    }
-
-    .reviews-carousel {
-    display: flex; 
-    overflow-x: scroll; 
-    scroll-snap-type: x mandatory; 
-    scroll-behavior: smooth; 
-    -webkit-overflow-scrolling: touch; 
-    gap: 20px;
-    padding-bottom: 20px; 
-
-    .review-card {
-    background-color: #f4f4f4;
-    border-radius: 8px;
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-    padding: 20px;
-    text-align: left;
-    transition: transform 0.3s ease;
-    position: relative;
+    <meta charset="UTF-8">
+    <title>Carrousel Dynamique avec Filtre de Vérification</title>
     
-    flex: 0 0 90%; 
-    width: 90%;
-    max-width: 350px; 
-    scroll-snap-align: start; 
-    }
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;700&family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,400&display=swap" rel="stylesheet">
 
-    /* Styles des boutons de navigation */
-    .carousel-nav-button {
-    background: #008060; 
-    color: white;
-    border: none;
-    padding: 8px 12px; 
-    cursor: pointer;
-    border-radius: 4px; 
-    font-size: 1.1em; 
-    line-height: 1;
-    transition: background 0.3s ease;
-    
-    width: auto; 
-    text-align: center; 
-    display: block; 
-    }
-    .carousel-nav-button:hover {
-    background: #555;
-    }
+    <style>
+        /* -------------------------------------------------------------------
+            1. STYLES GÉNÉRAUX DU CARROUSEL (HTML CLASS: .temoignages-conteneur)
+            ------------------------------------------------------------------- */
+        .temoignages-conteneur {
+            font-family: 'Poppins', sans-serif; 
+            display: flex;
+            flex-wrap: nowrap;
+            align-items: stretch; 
+            min-height: 450px; 
+            overflow-x: scroll;
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+            gap: 30px; 
+            padding: 10px 0; 
+            margin: 0 auto;
+        }
+        .temoignages-conteneur::-webkit-scrollbar {
+            display: none;
+        }
 
-    /* MEDIA QUERIES */
-    @media (min-width: 601px) {
-    .review-card {
-        flex: 0 0 calc(33.333% - 13.333px); 
-        max-width: none;
-    }
-    }
+        /* -------------------------------------------------------------------
+            2. STYLES DE LA VIGNETTE (HTML CLASS: .vignette-avis)
+            ------------------------------------------------------------------- */
+        .vignette-avis {
+            background-color: #f7f7f7;
+            padding: 15px;	
+            border-radius: 8px;	
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            text-align: left;	
+            
+            flex: 0 0 30% !important;	
+            min-width: 300px !important;	
 
-    /* Styles des éléments de la carte (non modifiés) */
-    .reviewer-info { display: flex; align-items: center; justify-content: flex-start; margin-bottom: 10px; }
-    .reviewer-details { text-align: left; }
-    .reviewer-details .name { font-weight: bold; color: #333; }
-    .reviewer-details .job { color: #666; font-style: italic; }
-    .stars { color: #DDAC17; font-size: 1.5em; margin: 10px 0; }
-    .comment { font-style: italic; color: #333; line-height: 1.6; }
+            display: flex;	
+            flex-direction: column;
+            justify-content: space-between !important;	
 
-    /* Logos et badges (non modifiés) */
-    .linkedin-link {
-    display: inline-block; position: absolute; top: 10px; right: 38px; width: 24px; height: 24px;
-    background-image: url('https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png');
-    background-size: contain; background-repeat: no-repeat; text-indent: -9999px; overflow: hidden;
-    }
-    .certified-badge {
-    position: absolute; top: 10px; right: 10px; width: 24px; height: 24px;
-    background-image: url('https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Check_icon.png/640px-Check_icon.png');
-    background-size: contain; background-repeat: no-repeat; z-index: 10;
-    }
-    @media (max-width: 600px) {
-    .review-widget-container { padding: 10px !important; }
-    .review-card { padding: 15px; }
-    }
+            flex-grow: 1;	
+            box-sizing: border-box;
+            height: auto;	
+        }
 
-    
-    h1 { margin: 0 0 8px 0; font-size: clamp(18px, 3.5vw, 32px); line-height:1.05; }
-    p  { margin: 0; font-size: clamp(14px, 2.2vw, 18px); opacity: 0.95; }
-  </style>
+        /* Style spécifique du bloc de commentaire */
+        .texte-avis.commentaire-principal {
+            flex-grow: 1;	
+            text-align: left;	
+            
+            margin-top: 0px;	
+            padding-top: 0px;
+            border-top: none;	
+            font-style: normal;
+            font-size: 1em;
+            line-height: 1.5; 
+            
+            margin-bottom: 0;
+            padding-bottom: 0;
+        }
+
+        /* -------------------------------------------------------------------
+            3. STYLES SPÉCIFIQUES À LA VIGNETTE & NOUVELLE MISE EN PAGE
+            ------------------------------------------------------------------- */
+        
+        /* Organisation de l'en-tête (Nom/Fonction vs Icônes) */
+        .avis-header {
+            display: block; /* Important pour que le Nom/Fonction coule sous les éléments flottants */
+            margin-bottom: 5px; 
+        }
+        
+        /* CORRECTION CLÉ : Flotter les icônes à droite, au-dessus du Nom/Fonction */
+        .icones-top-right {
+            display: flex;
+            gap: 8px; 
+            align-items: center; 
+            
+            float: right; /* Pousse les icônes à l'extrême droite */
+            margin-bottom: 5px; 
+        }
+        
+        /* Assurer que les images sont bien traitées et agrandies */
+        .icone-verifie img,
+        .icone-linkedin-lien img {
+            transition: none;
+            display: block;	
+            width: 24px !important;
+            height: 24px !important;
+        }
+
+        /* Conteneur des informations du client (Nom/Fonction) */
+        .client-info-bloc {
+            margin-bottom: 0px;	
+            overflow: hidden; /* Déclenche un nouveau contexte de formatage pour respecter le float: right des icônes */
+        }
+
+        .client-nom {
+            font-weight: 600; 
+            font-size: 1.15em; 
+            color: #333;	
+            margin-bottom: 0px;	
+        }
+
+        .client-fonction {
+            font-size: 0.95em; 
+            color: #6c757d;	
+            margin-top: 2px;
+            margin-bottom: 5px; 
+        }
+
+        /* Conteneur des étoiles */
+        .evaluation-etoiles {
+            margin-bottom: 8px;	
+            margin-top: 5px; 
+            text-align: left;	
+            color: #ffc107;	
+            font-size: 1.4em;
+        }
+        
+        .client-linkedin-lien {
+            display: none !important;	
+        }
+
+        /* Style de l'icône de vérification */
+        .icone-verifie {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        /* -------------------------------------------------------------------
+            4. STYLES DE NAVIGATION & STATISTIQUES (EN-TÊTE)
+            ------------------------------------------------------------------- */
+        
+        .widget-global-conteneur {
+            max-width: 100%; 
+            padding: 0 20px; 
+            margin: 0 auto;
+        }
+        
+        .statistiques-navigation-header {
+            display: flex;
+            justify-content: center; 
+            align-items: center;
+            padding: 5px 0; 
+            margin-bottom: 10px;
+            font-family: 'Inter', sans-serif; 
+        }
+
+        .statistiques-conteneur {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 20px;
+            font-size: 1.1em;
+            font-weight: 500;
+        }
+
+        /* NOUVEAU STYLE : Étoile à côté du 5.0 */
+        .etoile-stats {
+            color: #ffc107; 
+            font-size: 0.9em; 
+            margin-left: 2px;
+        }
+
+        .valeur-moyenne {
+            font-weight: 700;
+            font-size: 1.6em; 
+            color: #333; 
+        }
+
+        .valeur-total {
+            font-weight: 700;
+            font-size: 1.6em; 
+            color: #333; 
+        }
+
+        .texte-note, .texte-avis {
+            display: block;
+            font-size: 0.8em;
+            color: #6c757d;
+            margin-top: -3px;
+        }
+
+        .separateur {
+            height: 40px;
+            width: 1px;
+            background-color: #ddd;
+        }
+        
+        /* Flèches */
+        .fleche-header {
+            position: static; 
+            transform: none;
+            margin: 0 20px;
+            background-color: #008060; 
+            color: white;
+            border: none;
+            box-shadow: none;
+            width: 40px;          
+            height: 40px;         
+            font-size: 18px;      
+            border-radius: 8px;   
+            display: flex;        
+            justify-content: center; 
+            align-items: center;  
+        }
+        .fleche-header:hover {
+            background-color: #00664c;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Cacher l'ancien conteneur de navigation */
+        .carrousel-navigation-conteneur {
+            display: none;
+        }
+
+        /* -------------------------------------------------------------------
+            5. MEDIA QUERY (Mobile)
+            ------------------------------------------------------------------- */
+        
+        @media (max-width: 768px) {
+            .vignette-avis {
+                flex: 0 0 85% !important;
+                min-width: 0 !important; 
+            }
+            .fleche-navigation {
+                display: none;
+            }
+            .temoignages-conteneur {
+                padding-left: 15px;
+                padding-right: 15px;
+                gap: 20px;
+            }
+            .fleche-header {
+                display: none;
+            }
+            .widget-global-conteneur {
+                padding: 0 10px; 
+            }
+        }
+
+        @media (max-width: 480px) {
+            .temoignages-conteneur {
+                padding-left: 10px;
+                padding-right: 10px;
+                gap: 15px;	
+            }
+            .vignette-avis {
+                flex: 0 0 90% !important;	
+                padding: 10px;
+            }
+            .statistiques-conteneur {
+                font-size: 0.9em; 
+            }
+            .valeur-moyenne, .valeur-total {
+                font-size: 1.4em;
+            }
+        }
+    </style>
 </head>
-
-  
 <body>
 
-<div class="review-widget-container">
-    
-    <div class="carousel-header">
-        <span id="average-rating"></span> 
+    <div class="widget-global-conteneur">
         
-        <button class="carousel-nav-button" id="carousel-prev">&#9664;</button>
-        <span id="review-counter">Chargement...</span> 
-        <button class="carousel-nav-button" id="carousel-next">&#9654;</button>
-    </div>
-    
-    <div class="reviews-carousel">
-</div>
-</div>
+        <div class="statistiques-navigation-header">
+            
+            <button id="fleche-gauche" class="fleche-navigation fleche-header" aria-label="Défiler à gauche">
+                &#10094;
+            </button>
 
-  
-</body>
-
-<script>
-// ====================================================================
-// N'oubliez pas de remplacer ces 3 valeurs par vos informations réelles
-// ====================================================================
-const API_KEY = 'AIzaSyA5ltEx_jUIlgC-IrGsubOfKQIHFyg4u78';
-// REMARQUE : Remplacez la valeur ci-dessous par l'identifiant réel de votre Google Spreadsheet.
-const SPREADSHEET_ID = '14HcunSAnIfklpemWokAvHl7H_o1yipDbWsQ2k5TE_KY';
-// TODO: Replace 'Réponses au formulaire 1' with your actual sheet name.
-const SHEET_NAME = 'Réponses au formulaire 1';
-// ====================================================================
-
-const RANGE = 'A2:G'; 
-const REVIEWS_CONTAINER = document.querySelector('.reviews-carousel');
-
-// VARIABLES DE COMPTEUR
-let currentReviewIndex = 0; 
-let totalReviews = 0;
-
-// FONCTION POUR METTRE À JOUR LA NOTE MOYENNE
-function displayAverageRating(ratings) {
-    const avgElement = document.getElementById('average-rating');
-    if (!avgElement) return;
-
-    if (ratings.length === 0) {
-        avgElement.innerHTML = `
-            <div class="rating-value">
-                <span class="star-icon">★</span> 0.0
+            <div class="statistiques-conteneur">
+                <div class="note-moyenne">
+                    <span class="valeur-moyenne" id="note-moyenne-valeur">...</span>
+                    <span class="texte-note">Note moyenne</span>
+                </div>
+                <div class="separateur"></div>
+                <div class="total-avis">
+                    <span class="valeur-total" id="total-avis-valeur">...</span>
+                    <span class="texte-avis">Avis Total</span>
+                </div>
             </div>
-            <span class="average-text">Note moyenne</span>
-        `;
-        return;
-    }
 
-    // Calcule la somme des notes
-    const sum = ratings.reduce((acc, rating) => acc + rating, 0);
-    // Calcule la moyenne et la formatte à une décimale
-    const average = (sum / ratings.length).toFixed(1);
-    
-    // Ajout du texte descriptif
-    avgElement.innerHTML = `
-        <div class="rating-value">
-            <span class="star-icon">★</span> ${average}
+            <button id="fleche-droite" class="fleche-navigation fleche-header" aria-label="Défiler à droite">
+                &#10095;
+            </button>
+
         </div>
-        <span class="average-text">Note moyenne</span>
-    `;
-}
-
-// FONCTION POUR METTRE À JOUR LE COMPTEUR D'AFFICHAGE
-function updateCounter() {
-    const counterElement = document.getElementById('review-counter');
-    if (counterElement && totalReviews > 0) {
-        // Le compteur affiche uniquement le nombre d'avis
-        counterElement.textContent = `${currentReviewIndex + 1} / ${totalReviews} avis`;
-    } else if (counterElement) {
-        counterElement.textContent = `0 avis`;
-    }
-}
-
-
-// Fonction pour faire défiler le carrousel
-function scrollCarousel(direction) {
-    // Calcul du nouvel index
-    let newIndex = currentReviewIndex + direction;
-
-    // Logique d'arrêt aux extrémités
-    if (newIndex < 0) {
-        newIndex = 0;
-        return; 
-    }
-    if (newIndex >= totalReviews) {
-        newIndex = totalReviews - 1;
-        return; 
-    }
-    
-    // Mise à jour de l'index
-    currentReviewIndex = newIndex;
-    updateCounter(); 
-
-    // Calcul et exécution du défilement
-    const cardElement = REVIEWS_CONTAINER.children[currentReviewIndex];
-    if (!cardElement) return;
-
-    // 20 est l'espacement (gap) entre les cartes
-    const scrollDistance = cardElement.offsetWidth + 20; 
-    
-    REVIEWS_CONTAINER.scrollTo({ 
-        left: currentReviewIndex * scrollDistance, 
-        behavior: 'smooth'
-    });
-};
-
-
-async function fetchReviews() {
-    try {
-        const response = await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${SHEET_NAME}!${RANGE}?key=${API_KEY}`);
-        const data = await response.json();
-        const reviews = data.values;
         
-        if (!reviews || reviews.length === 0) {
-            console.error('Aucune donnée trouvée dans la feuille de calcul.');
-            totalReviews = 0;
-            updateCounter();
-            displayAverageRating([]); 
-            return;
+        <div class="carrousel-seul-conteneur">
+            <section class="temoignages-conteneur">	
+                </section>
+        </div>
+
+    </div>
+
+
+    <script>
+        // ⚠️ VOS VARIABLES D'API (A CONSERVER TELLES QUELLES SI ELLES FONCTIONNENT)
+        const API_KEY = 'AIzaSyA5ltEx_jUIlgC-IrGsubOfKQIHFyg4u78';
+        const SPREADSHEET_ID = '14HcunSAnIfklpemWokAvHl7H_o1yipDbWsQ2k5TE_KY';
+        const SHEET_NAME = 'Réponses au formulaire 1';
+        
+        // URLS D'ICÔNES
+        const LINKEDIN_ICON_URL = "https://upload.wikimedia.org/wikipedia/commons/c/ca/LinkedIn_logo_initials.png";
+        const CHECK_ICON_URL = "https://upload.wikimedia.org/wikipedia/commons/thumb/5/56/Check_icon.png/640px-Check_icon.png";
+
+        const RANGE = `${SHEET_NAME}!A2:G`; 
+        const API_URL = `https://sheets.googleapis.com/v4/spreadsheets/${SPREADSHEET_ID}/values/${RANGE}?key=${API_KEY}`;
+        
+        const conteneurTemoignages = document.querySelector('.temoignages-conteneur');
+        const flecheGauche = document.getElementById('fleche-gauche');
+        const flecheDroite = document.getElementById('fleche-droite');
+
+
+        /**
+         * Convertit le texte des étoiles (par ex. 5) en entités HTML (★★★★★)
+         */
+        function genererEtoiles(note) {
+            const noteNumerique = parseInt(note);
+            let etoilesHTML = '';
+            const etoilePleine = '<span class="etoile pleine">&#9733;</span>';
+            const etoileVide = '<span class="etoile vide">&#9734;s</span>';
+
+            for (let i = 0; i < 5; i++) {
+                etoilesHTML += (i < noteNumerique) ? etoilePleine : etoileVide;
+            }
+            return `<div class="evaluation-etoiles">${etoilesHTML}</div>`;
         }
 
-        const validRatings = []; 
-
-        reviews.forEach(row => {
-            const [timestamp, prenom, job, rating, comment, linkedinUrl, isVerified] = row;
+        /**
+         * Crée le code HTML pour une seule vignette
+         */
+        function creerVignetteHTML(data) {
+            const prenom = data[1] || '';
+            const fonction = data[2] || '';
+            const evaluation = data[3] || '';
+            const commentaire = data[4] || '';
+            const urllinkedin = data[5] ? data[5].replace(/"/g, '') : '';
+            const verifie = data[6] || ''; 
             
-            // FILTRE : Seuls les avis où 'isVerified' est exactement '1' sont conservés.
-            if (isVerified !== '1') {
-                return; 
+            if (verifie !== '1') {
+                return ''; 
             }
+            if (!commentaire || commentaire.length < 5) return ''; 
             
-            // Enregistre la note si elle est valide
-            const numericRating = parseFloat(rating) || 0;
-            if (numericRating > 0) {
-                validRatings.push(numericRating);
-            }
+            const commentaireGuillemets = `"${commentaire}"`;
             
-            if (!prenom && !comment) { return; }
+            // Icônes agrandies (24px)
+            const verifieIcone = verifie ? `
+                <span class="icone-verifie">
+                    <img src="${CHECK_ICON_URL}" alt="Vérifié">
+                </span>
+            ` : '';
 
-            const reviewCard = document.createElement('div');
-            reviewCard.className = 'review-card';
-
-            const filledStars = '★'.repeat(Math.round(numericRating));
-            const emptyStars = '☆'.repeat(5 - Math.round(numericRating));
-            const starHtml = filledStars + emptyStars;
+            const linkedinIcone = urllinkedin ? `
+                <a href="${urllinkedin}" target="_blank" class="icone-linkedin-lien">
+                    <img src="${LINKEDIN_ICON_URL}" alt="LinkedIn">
+                </a>
+            ` : ''; 
             
-            const certifiedBadge = `<div class="certified-badge"></div>`; 
-            const linkedinSection = linkedinUrl ? `<a href="${linkedinUrl}" class="linkedin-link" target="_blank"></a>` : '';
-
-            const reviewerInfo = `
-                <div class="reviewer-info">
-                    <div class="reviewer-details">
-                        <span class="name">${prenom}</span><br>
-                        <span class="job">${job}</span>
+            return `
+                <div class="vignette-avis">
+                    
+                    <div class="icones-top-right">
+                        ${linkedinIcone}
+                        ${verifieIcone}
                     </div>
+
+                    <div class="avis-header">
+                        <div class="client-info-bloc info-top">
+                            <p class="client-nom">${prenom}</p>
+                            <p class="client-fonction">${fonction}</p>
+                        </div>
+                    </div>
+
+                    ${genererEtoiles(evaluation)}
+                    
+                    <p class="texte-avis commentaire-principal">${commentaireGuillemets}</p>
                 </div>
             `;
-            const ratingSection = rating ? `<div class="stars">${starHtml}</div>` : '';
-            const commentSection = comment ? `<div class="comment">${comment}</div>` : '';
-
-            reviewCard.innerHTML = `
-                ${certifiedBadge}
-                ${linkedinSection}
-                ${reviewerInfo}
-                ${ratingSection}
-                ${commentSection}
-            `;
-
-            REVIEWS_CONTAINER.appendChild(reviewCard);
-        });
-        
-        // Initialisation du compteur et de la note moyenne
-        totalReviews = REVIEWS_CONTAINER.children.length;
-        currentReviewIndex = 0;
-        updateCounter();
-        displayAverageRating(validRatings); 
-
-        // Attachement des événements de clic
-        const prevButton = document.getElementById('carousel-prev');
-        const nextButton = document.getElementById('carousel-next');
-
-        if (prevButton && nextButton) {
-            prevButton.addEventListener('click', () => {
-                scrollCarousel(-1);
-            });
-
-            nextButton.addEventListener('click', () => {
-                scrollCarousel(1);
-            });
         }
 
-    } catch (error) {
-        console.error('Erreur lors de la récupération des avis via l\'API :', error);
-    }
-}
+        /**
+         * Calcule la distance de défilement (largeur de la vignette + espace)
+         */
+        function calculerDistanceDefilement() {
+            const vignette = conteneurTemoignages.querySelector('.vignette-avis');
+            if (!vignette) return 0;
+            
+            const vignetteLargeur = vignette.offsetWidth;
+            const gap = parseFloat(window.getComputedStyle(conteneurTemoignages).gap);
+            
+            return vignetteLargeur + gap; 
+        }
 
-fetchReviews();
-</script>
+        /**
+         * Met à jour la note moyenne et le total dans l'en-tête HTML
+         */
+        function mettreAJourStatistiques(moyenne, total) {
+            const conteneurStats = document.getElementById('note-moyenne-valeur');
+            const conteneurTotal = document.getElementById('total-avis-valeur');
+            
+            if (conteneurStats) {
+                conteneurStats.innerHTML = `${moyenne} <span class="etoile-stats">&#9733;</span>`; 
+            }
+            if (conteneurTotal) {
+                conteneurTotal.textContent = total;
+            }
+        }
+
+
+        /**
+         * Fonction principale pour récupérer et afficher les avis via l'API
+         */
+        async function chargerAvis() {
+            try {
+                const reponse = await fetch(API_URL);
+                
+                if (!reponse.ok) {
+                    throw new Error(`API Google Sheets: ${reponse.status}`);
+                }
+
+                const data = await reponse.json();
+                const donneesAvis = data.values || [];
+                
+                let sommeNotes = 0;
+                let avisValides = 0;
+                
+                donneesAvis.forEach(avis => {
+                    const note = parseInt(avis[3]); 
+                    const verifie = avis[6];
+                    
+                    if (verifie === '1' && !isNaN(note) && avis[4] && avis[4].length > 5) {
+                        sommeNotes += note;
+                        avisValides++;
+                    }
+                });
+                
+                const noteMoyenne = (avisValides > 0) ? (sommeNotes / avisValides).toFixed(1) : '0.0';
+                
+
+                if (avisValides === 0) {
+                     mettreAJourStatistiques('0.0', 0);
+                     conteneurTemoignages.innerHTML = `<p style="text-align: center; padding: 50px;">Aucun avis vérifié trouvé dans la feuille.</p>`;
+                     return;
+                }
+                
+                const donneesAvisAffichees = donneesAvis.filter(avis => avis[6] === '1');
+
+                const toutHTML = donneesAvisAffichees.map(creerVignetteHTML).join('');
+                conteneurTemoignages.innerHTML = toutHTML;
+                
+                mettreAJourStatistiques(noteMoyenne, avisValides);
+                activerNavigation();
+
+            } catch (erreur) {
+                console.error("Erreur lors du chargement des avis :", erreur);
+                document.querySelector('.statistiques-conteneur').innerHTML = `<p>Erreur</p>`;
+                conteneurTemoignages.innerHTML = `<p style="text-align: center; padding: 50px;">Désolé, impossible de charger les avis. Erreur : ${erreur.message}</p>`;
+            }
+        }
+        
+        /**
+         * Active les événements de clic sur les flèches
+         */
+        function activerNavigation() {
+             if (flecheDroite && flecheGauche) {
+                flecheDroite.addEventListener('click', () => {
+                    const distance = calculerDistanceDefilement();
+                    conteneurTemoignages.scrollBy({
+                        left: distance,
+                        behavior: 'smooth' 
+                    });
+                });
+
+                flecheGauche.addEventListener('click', () => {
+                    const distance = calculerDistanceDefilement();
+                    conteneurTemoignages.scrollBy({
+                        left: -distance,
+                        behavior: 'smooth'
+                    });
+                });
+            }
+        }
+
+        // Lance le chargement des avis au chargement de la page
+        chargerAvis();
+
+    </script>
+
+</body>
 </html>
